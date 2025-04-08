@@ -1,0 +1,54 @@
+#include<stdio.h>
+#define MAX 5
+#define MAX1 11
+
+int main(){
+    int notas[MAX];
+    int repeticion[MAX1]={0};
+    int Nota=0, mayor_nota=-1, menos_nota=10, numero=0,cont=0;
+    float promedio;
+
+    //ingreso
+    for (int i = 0; i < MAX; i++)
+    {
+        do
+        {
+            printf("Ingrese la nota del estudiante %d: ", i+1);
+            if(scanf("%d", &notas[i])==0 || notas[i]<0 || notas[i]>10) {
+                printf("No ingrese caracteres o numeros mayores a 10 o numeros menores a 0\n");
+                while (getchar()!='\n');
+                }
+        } while (notas[i]<0 || notas[i]>10);
+        Nota+=notas[i];
+        //mayor nota
+        if (notas[i]>mayor_nota)
+        {
+            mayor_nota=notas[i];
+        }
+        //menor nota
+        if (notas[i]<menos_nota)
+        {
+            menos_nota=notas[i];
+        }
+        //controlar el indice del arreglo 
+        if (notas[i]>=0 && notas[i]<MAX1)
+        {
+            repeticion[notas[i]]+=1;
+        }
+    }
+    //repeticiones
+    for (int i = 0; i < MAX1; i++)
+    {
+        if (repeticion[i]>=2)
+        {
+            printf("El numero %d se repitio %d veces \n", i, repeticion[i]);
+        }
+    }
+    promedio=(float)Nota/MAX;
+    //imprimir
+    printf("El promedio de notas es: %.2f\n", promedio);
+    printf("La mayor nota es %d\n", mayor_nota);
+    printf("La menor nota es %d\n", menos_nota);
+
+    return 0;
+}
