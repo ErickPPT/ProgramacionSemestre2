@@ -1,0 +1,103 @@
+#include <stdio.h>
+
+#define NOTAS_POR_MATERIA 3
+#define ALUMNOS 5
+
+int main() {
+    int materias;
+    int notas[ALUMNOS][20][NOTAS_POR_MATERIA]; // hasta 20 materias
+
+    do
+        {
+            printf("INGRESE LA CANTIDAD DE MATERIAS QUE DESEA CALCULAR: ");
+            if(scanf("%d", &materias)==0 || materias<1 || materias>20) {
+                printf("ERROR, INGRESE UNA CANTIDAD VALIDA DE MATERIAS (1-20):\n");
+                while (getchar()!='\n');
+                }
+        } while (materias < 1 || materias > 20);
+
+    // Ingreso de notas
+    for (int k = 0; k < materias; k++) {
+        printf("\nMATERIA %d\n", k + 1);
+
+        for (int i = 0; i < ALUMNOS; i++) {
+            for (int j = 0; j < NOTAS_POR_MATERIA; j++) {
+                do
+                {
+                    printf("INGRESE LA NOTA DEL ESTUDIANTE %d EN LA NOTA %d: ", i + 1, j + 1);
+                    if(scanf("%d", &notas[i][k][j])==0 || notas[i][k][j] < 0 || notas[i][k][j] > 10) {
+                        printf("ERROR, INGRESE UNA NOTA VALIDA (0-10): \n");;
+                        while (getchar()!='\n');
+                        }
+                } while (notas[i][k][j] < 0 || notas[i][k][j] > 10);
+            }
+        }
+
+        // Calcular promedios, extremos y contar reprobados
+        int jalados = 0;
+        int pasados = 0; 
+        float promedio_por_materia=0;
+        printf("\nRESULTADOS DE LA MATERIA %d:\n", k + 1);
+
+        for (int i = 0; i < ALUMNOS; i++) {
+            float suma = 0;
+            int nota_mayor = 0;
+            int nota_menor = 10;
+            float promedio=0;
+            
+
+            for (int j = 0; j < NOTAS_POR_MATERIA; j++) {
+                int nota_actual = notas[i][k][j];
+                suma += nota_actual;
+
+                if (nota_actual > nota_mayor) {
+                    nota_mayor = nota_actual;   
+                }
+                if (nota_actual < nota_menor) {
+                    nota_menor = nota_actual;
+                }
+            }
+
+            promedio = suma / NOTAS_POR_MATERIA;
+            promedio_por_materia += promedio/ALUMNOS;
+
+            printf("Estudiante %d:\n", i + 1);
+            printf("  Promedio: %.2f\n", promedio);
+            printf("  Nota mas alta: %d\n", nota_mayor);
+            printf("  Nota mas baja: %d\n", nota_menor);
+
+            if (promedio >= 6.0) {
+                printf("  Estado: Aprobado\n");
+                pasados++;
+            } else {
+                printf("  Estado: Reprobado\n");
+                jalados++;
+            }
+            printf("\n");
+        }
+        printf("El promedio de la materia %d es %.2f\n", k+1,promedio_por_materia);
+        printf("Total de estudiantes reprobados en la materia %d: %d\n", k + 1, jalados);
+        printf("Total de estudiantes aprobados en la materia %d: %d\n", k + 1, pasados);
+        printf("---------------------------------------------\n");
+    }
+
+    // Promedio general por estudiante
+    printf("\nPROMEDIO GENERAL DE CADA ESTUDIANTE:\n");
+    for (int i = 0; i < ALUMNOS; i++) {
+        float suma_total = 0;
+
+        for (int k = 0; k < materias; k++) {
+            float suma_materia = 0;
+            for (int j = 0; j < NOTAS_POR_MATERIA; j++) {
+                suma_materia += notas[i][k][j];
+            }
+            float promedio_materia = suma_materia / NOTAS_POR_MATERIA;
+            suma_total += promedio_materia;
+        }
+
+        float promedio_general = suma_total / materias;
+        printf("Estudiante %d: Promedio general = %.2f\n", i + 1, promedio_general);
+    }
+
+    return 0;
+}
