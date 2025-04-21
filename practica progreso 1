@@ -1,0 +1,145 @@
+#include<stdio.h>
+#define ALUMNOS 3
+#define NOTAS_POR_MATERIA1 3
+#define MATERIAS 3
+int main(int argc, char const *argv[])
+{
+    int matriz[ALUMNOS][NOTAS_POR_MATERIA1];
+    int matriz1[ALUMNOS][NOTAS_POR_MATERIA1];
+    int matriz2[ALUMNOS][NOTAS_POR_MATERIA1];
+    float matriz3[ALUMNOS][MATERIAS];
+    float nota=0;
+    int nota_mayor=0;
+    int nota_menor=10;
+    int aprobados=0;
+    int reprobados=0;
+    //asignatura 1
+    printf("Notas de la asignatura 1\n");
+    for (int i = 0; i < ALUMNOS; i++)
+    {
+        float acumulador=0;
+        float promedio1=0;
+        for (int j = 0; j < NOTAS_POR_MATERIA1; j++)
+        {
+            do
+            {
+                printf("Ingrese la nota del estudiante %d en la nota %d: ", i+1, j+1);
+                if (scanf("%d", &matriz[i][j])!=1 || matriz[i][j]<0)
+                {
+                    printf("Ingrese datos validos de numeros mayores a 0\n");
+                    while(getchar()!='\n');
+                    matriz[i][j]=-1;
+                }
+            } while (matriz[i][j]<0);
+            nota=matriz[i][j];
+            acumulador+=nota;
+            promedio1=(float)acumulador/NOTAS_POR_MATERIA1;
+            matriz3[i][0]=promedio1;
+            if (promedio1>=6)
+            {
+                aprobados++;
+            }else
+            {
+                reprobados++;
+            } 
+        }
+        printf("El promedio del estudiante %d es %.2f\n",i+1, promedio1);
+    }
+    printf("\n\n");
+    //asignatura 2
+    printf("Notas de la asignatura 2\n");
+    for (int i = 0; i < ALUMNOS; i++)
+    {
+        float acumulador=0;
+        float promedio2=0;
+        for (int j = 0; j < NOTAS_POR_MATERIA1; j++)
+        {
+            do
+            {
+                printf("Ingrese la nota del estudiante %d en la nota %d: ", i+1, j+1);
+                if (scanf("%d", &matriz1[i][j])!=1 || matriz1[i][j]<0)
+                {
+                    printf("Ingrese datos validos de numeros mayores a 0\n");
+                    while(getchar()!='\n');
+                    matriz1[i][j]=-1;
+                }
+            } while (matriz1[i][j]<0);
+            nota=matriz1[i][j];
+            acumulador+=nota;
+            promedio2=(float)acumulador/NOTAS_POR_MATERIA1;
+            matriz3[i][1]=promedio2;
+            if (promedio2>=6)
+            {
+                aprobados++;
+            }else
+            {
+                reprobados++;
+            } 
+        }
+        
+        printf("El promedio del estudiante %d es %.2f\n\n",i+1, promedio2);
+    }
+    printf("\n\n");
+    //asignatura 3
+    printf("Notas de la asignatura 3\n");
+    for (int i = 0; i < ALUMNOS; i++)
+    {
+        float acumulador=0;
+        float promedio3=0;
+        for (int j = 0; j < NOTAS_POR_MATERIA1; j++)
+        {
+            do
+            {
+                printf("Ingrese la nota del estudiante %d en la nota %d: ", i+1, j+1);
+                if (scanf("%d", &matriz2[i][j])!=1 || matriz2[i][j]<0)
+                {
+                    printf("Ingrese datos validos de numeros mayores a 0\n");
+                    while(getchar()!='\n');
+                    matriz2[i][j]=-1;
+                }
+            } while (matriz2[i][j]<0);
+            nota=matriz2[i][j];
+            acumulador+=nota;
+            promedio3=(float)acumulador/NOTAS_POR_MATERIA1;
+            matriz3[i][2]=promedio3;
+            if (promedio3>=6)
+            {
+                aprobados++;
+            }else
+            {
+                reprobados++;
+            } 
+        }
+        
+        printf("El promedio del estudiante %d es %.2f\n\n",i+1, promedio3);
+    }
+
+    for (int i = 0; i < ALUMNOS; i++)
+    {
+        float acumulador=0;
+        float promedio=0;
+        for (int j = 0; j < MATERIAS; j++)
+        {
+            nota=matriz3[i][j];
+            acumulador+=nota;
+            
+        }
+        promedio=(float)acumulador/MATERIAS;
+        printf("El promedio de el alumno %d en todas las materias es %.2f\n\n",i+1, promedio);
+        
+    }
+    for (int j = 0; j < MATERIAS; j++)
+    {
+        float acumulador=0;
+        float promedio=0;
+        for (int i = 0; i < ALUMNOS; i++)
+        {
+            nota=matriz3[i][j];
+            acumulador+=nota;
+            
+        }
+        promedio=(float)acumulador/MATERIAS;
+        printf("El promedio de la asignatura %d es %.2f\n\n",j+1, promedio);
+    }
+    return 0;
+}
