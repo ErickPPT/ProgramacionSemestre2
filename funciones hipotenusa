@@ -1,0 +1,30 @@
+#include<stdio.h>
+#include<math.h>
+float hipotenusa(float cateto1, float cateto2);
+float leerNumero(char*);
+
+float leerNumero(char* mensaje){
+    float valor;
+    printf("%s: ", mensaje);
+    while (scanf("%f", &valor)!=1 || valor<0)
+    {
+       printf("Dato mal ingresado\n");
+       while(getchar()!='\n');
+       printf("%s: ", mensaje);
+    }
+    return valor;
+  }
+float hipotenusa(float cateto1, float cateto2){
+    float hipo;
+    hipo = sqrtf(pow(cateto1, 2)+ pow(cateto2, 2));
+    return hipo;
+}
+
+int main(int argc, char const *argv[])
+{
+    float cateto1, cateto2, hipo;
+    cateto1 = leerNumero("Ingrese el valor del cateto 1: ");
+    cateto2 = leerNumero("Ingrese el valor del cateto 2: ");
+    printf("La hipotenusa es %.2f", hipotenusa(cateto1, cateto2));
+    return 0;
+}
