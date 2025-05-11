@@ -12,12 +12,16 @@ int main(int argc, char const *argv[])
     cantidad=IngresarCantidad("Ingrese la cantidad de productos (maximo 10):\n", MAXIMO, MINIMO);
     for (int i = 0; i < cantidad; i++)
     {
-        IngresarProductos("Ingrese el nombre del producto: ",  nombres[i], 30);
+        char mensajeNombre[50];
+        sprintf(mensajeNombre, "Ingrese el nombre del producto %d: ", i + 1); // Construye el mensaje dinámico
+        IngresarProductos(mensajeNombre, nombres[i], 30);
     }
     
     for (int i = 0; i < cantidad; i++)
     {
-        precios[i]=IngresarPrecio("Ingrese el precio del producto: ");
+        char mensajePrecio[50];
+        sprintf(mensajePrecio, "Ingrese el precio del producto %d: ", i + 1); // Construye el mensaje dinámico
+        precios[i] = IngresarPrecio(mensajePrecio);
     }
     printf("El total del inventario es: %.2f\n", CalcularTotal(precios, cantidad));
     printf("El promedio de los precios es: %.2f\n", CalcularPromedio(precios, cantidad));
