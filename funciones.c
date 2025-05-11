@@ -52,34 +52,37 @@ float CalcularPromedio(float precios[10], int cantidad){
     
 }
 int MostrarMasBarato(float precios[10], int cantidad){
-    int Min=0;
+    float Min=precios[0];
     for (int i = 1; i < cantidad; i++)
     {
-        if(precios[i]<precios[Min]){
+        if(precios[i]<Min){
             Min=i;
         }
     }
     return Min;
 }
-int MostrarMasCaro(float precios[10], int cantidad){
-    float Max=precios[0];
-    for (int i = 1; i < cantidad; i++)
-    {
-        if(precios[i]>Max){
-            Max=i;
+int MostrarMasCaro(float precios[10], int cantidad) {
+    int Max = 0; // Inicializa con el índice 0
+    for (int i = 1; i < cantidad; i++) {
+        if (precios[i] > precios[Max]) { // Compara precios
+            Max = i; // Actualiza el índice del más caro
         }
     }
-    return Max;
+    return Max; // Devuelve el índice del más caro
 }
-void EncontrarProducto(char nombres[][30], float precios[10], int cantidad, char NombreBuscado[]){
+void EncontrarProducto(char nombres[][30], float precios[10], int cantidad, char NombreBuscado[]) {
+    int encontrado = 0; // Bandera para verificar si se encuentra el producto
     IngresarProductos("Ingrese el nombre del producto a buscar:\n", NombreBuscado, 30);
-    for (int i = 0; i < cantidad; i++)
-    {
-        if(strcmp(nombres[i], NombreBuscado)==0){
-            printf("El producto %s tiene un precio de %.2f\n", nombres[i], precios[i]);
-        } 
-            printf("El producto %s no se encuentra en la lista\n", nombres[i]);
     
+    for (int i = 0; i < cantidad; i++) {
+        if (strcasecmp(nombres[i], NombreBuscado) == 0) { // Comparación ignorando mayúsculas/minúsculas
+            printf("El producto %s tiene un precio de %.2f\n", nombres[i], precios[i]);
+            encontrado = 1; // Marca como encontrado
+            break; // Sal del bucle una vez encontrado
+        }
     }
     
+    if (!encontrado) { // Si no se encontró el producto
+        printf("El producto %s no se encuentra en la lista\n", NombreBuscado);
+    }
 }
