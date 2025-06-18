@@ -1,19 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define DATA "datos.txt"
 void ingresarDato();
 void leerArchivo();
+void eliminarArchivo(char *busqueda);
 
 int main(int argc, char const *argv[])
 {
+    char busca[15];
     ingresarDato();
     leerArchivo();
+    printf("Ingrese el nombre del estudiante a eliminar: ");
+    scanf("%s", busca);
+    eliminarArchivo(busca);
+
     return 0;
 }
 
 void ingresarDato(){
     FILE *datos;
-    datos=fopen(DATA, "a");
+    datos=fopen(DATA, "w");
     char nombre[15];
     float promedio;
     if (datos==NULL)
@@ -25,10 +32,11 @@ void ingresarDato(){
     {
         printf("Ingrese su nombre: ");
         scanf("%s", nombre);
-        fprintf(datos, "%s: %s\n", "Nombre", nombre);
+        //fprintf(datos, "%s: %s\n", "Nombre", nombre);
         printf("Ingrese su promedio: ");
         scanf("%f", &promedio);
-        fprintf(datos, "%s: %.2f\n", "Promedio", promedio);
+        //fprintf(datos, "%s: %.2f\n", "Promedio", promedio);
+        fprintf(datos,"%s,%.2f\n", nombre, promedio);
     }
   
     fclose(datos);
@@ -36,17 +44,49 @@ void ingresarDato(){
 void leerArchivo(){
     FILE *archivo;
     archivo=fopen(DATA, "r");
-    char dato[30];
+    //char dato[30];
+    char nombre[15];
+    float promedio;
     if (!archivo)
     {
         printf("No se pudo abrir el archivo\n");
         return;
     }
-    fgets(dato, sizeof(dato), archivo);
+    /*fgets(dato, sizeof(dato), archivo);
     while (!feof(archivo))//pregunta si esta en el final del archivo
     {
         printf("%s", dato);
         fgets(dato, sizeof(dato), archivo);
+    }*/
+    while (fscanf(archivo,"%14[^,],%f\n",nombre,&promedio)==2){
+        printf("Nombre: %s Nota: %.2f\n",nombre,promedio);
     }
     fclose(archivo);
+}
+
+void eliminarArchivo(char *busqueda){
+    FILE *archivo;
+    archivo=fopen(DATA, "r");
+
+    FILE *temp;
+    temp=fopen("tempEstudiantes.txt", "w");
+    char nombre[15];
+    float promedio;
+    if (!archivo ||!temp)
+    {
+        printf("No se pudo abrir el archivo\n");
+        return;
+    }
+
+    while (fscanf(archivo,"%14[^,],%f\n",nombre,&promedio)==2){
+        if(strcmp(nombre,busqueda)==0){
+            printf("Estudiante encontrado, se elimina de la base\n");
+        }else{
+            fprintf(temp,"%s,%.2f\n",nombre,promedio);
+        }
+    }
+    fclose(archivo);
+    fclose(temp);
+    remove("datos.txt");
+    rename("tempEstudiantes.txt","datos.txt");
 }
