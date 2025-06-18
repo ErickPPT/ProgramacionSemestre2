@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define DATA "datos.txt"
+void ingresarDato();
+void leerArchivo();
+
+int main(int argc, char const *argv[])
+{
+    ingresarDato();
+    leerArchivo();
+    return 0;
+}
+
+void ingresarDato(){
+    FILE *datos;
+    datos=fopen(DATA, "a");
+    char nombre[15];
+    float promedio;
+    if (datos==NULL)
+    {
+        printf("No se pudo abrir el archivo");
+        return;
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        printf("Ingrese su nombre: ");
+        scanf("%s", nombre);
+        fprintf(datos, "%s: %s\n", "Nombre", nombre);
+        printf("Ingrese su promedio: ");
+        scanf("%f", &promedio);
+        fprintf(datos, "%s: %.2f\n", "Promedio", promedio);
+    }
+  
+    fclose(datos);
+}
+void leerArchivo(){
+    FILE *archivo;
+    archivo=fopen(DATA, "r");
+    char dato[30];
+    if (!archivo)
+    {
+        printf("No se pudo abrir el archivo\n");
+        return;
+    }
+    fgets(dato, sizeof(dato), archivo);
+    while (!feof(archivo))//pregunta si esta en el final del archivo
+    {
+        printf("%s", dato);
+        fgets(dato, sizeof(dato), archivo);
+    }
+    fclose(archivo);
+}
