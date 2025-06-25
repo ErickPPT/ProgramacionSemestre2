@@ -51,14 +51,14 @@ int codigounico(int codigo) {
                 break;
             }
         }
-        rewind(datos); // Reiniciar la lectura del archivo
+        rewind(datos);
     }
     fclose(datos);
     return codigo;
 }
 
 void ingresarDatos() {
-    FILE *datos = fopen(DATA, "a"); // Abrir archivo en modo agregar texto
+    FILE *datos = fopen(DATA, "a"); 
     if (datos == NULL) {
         printf("No se pudo abrir el archivo");
         return;
@@ -76,7 +76,7 @@ void ingresarDatos() {
             estudiante.notas[j] = ingresoentero("Ingrese la nota del estudiante: ", 0, 10);
         }
         float promedio_notas = promedio(estudiante.notas);
-        // Escribir datos en formato texto
+
         fprintf(datos, "%10d%10s%10.2f%10.2f%10.2f%10.2f\n", estudiante.codigo, estudiante.nombre,
                 estudiante.notas[0], estudiante.notas[1], estudiante.notas[2], promedio_notas);
     }
@@ -126,10 +126,13 @@ void buscarEstudiante() {
     }
 
     struct Estudiante estudiante;
+    float promedio_archivo;
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), datos); 
     int codigo_buscado = ingresoentero("Ingrese el codigo del estudiante a buscar: ", 0, 9999);
 
-    while (fscanf(datos, "%d %s %f %f %f", &estudiante.codigo, estudiante.nombre,
-                  &estudiante.notas[0], &estudiante.notas[1], &estudiante.notas[2]) == 5) {
+    while (fscanf(datos, "%d %s %f %f %f %f", &estudiante.codigo, estudiante.nombre,
+                  &estudiante.notas[0], &estudiante.notas[1], &estudiante.notas[2], &promedio_archivo) == 6) {
         if (estudiante.codigo == codigo_buscado) {
             printf("Estudiante encontrado:\n");
             printf("Codigo: %d\n", estudiante.codigo);
