@@ -11,6 +11,7 @@ int ingresoentero(char* mensaje, int min, int max);
 int codigounico(int codigo);
 float promedio(float notas[3]);
 void buscarEstudiante();
+void editarEstudiante();
 void borrarEstudiante();
 
 struct Estudiante {
@@ -62,7 +63,7 @@ void ingresarDatos() {
         perror("No se pudo abrir el archivo");
         return;
     }
-
+    fprintf(datos, "%10s%10s%10s%10s%10s%10s\n", "Codigo", "Nombre", "Nota1", "Nota2", "Nota3", "Promedio");
     for (int i = 0; i < MAX; i++) {
         struct Estudiante estudiante;
         memset(&estudiante, 0, sizeof(struct Estudiante)); // Inicializar estructura
@@ -74,10 +75,10 @@ void ingresarDatos() {
         for (int j = 0; j < 3; j++) {
             estudiante.notas[j] = ingresoentero("Ingrese la nota del estudiante: ", 0, 10);
         }
-
+        float promedio_notas = promedio(estudiante.notas);
         // Escribir datos en formato texto
-        fprintf(datos, "%d %s %.2f %.2f %.2f\n", estudiante.codigo, estudiante.nombre,
-                estudiante.notas[0], estudiante.notas[1], estudiante.notas[2]);
+        fprintf(datos, "%10d%10s%10.2f%10.2f%10.2f%10.2f\n", estudiante.codigo, estudiante.nombre,
+                estudiante.notas[0], estudiante.notas[1], estudiante.notas[2], promedio_notas);
     }
 
     fclose(datos);
@@ -91,10 +92,14 @@ void imprimirDatos() {
     }
 
     struct Estudiante estudiante;
+    float promedio_archivo;
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), datos);
+
     printf("%10s%10s%10s%10s%10s%10s\n", "Codigo", "Nombre", "Nota1", "Nota2", "Nota3", "Promedio");
 
-    while (fscanf(datos, "%d %s %f %f %f", &estudiante.codigo, estudiante.nombre,
-                  &estudiante.notas[0], &estudiante.notas[1], &estudiante.notas[2]) == 5) {
+    while (fscanf(datos, "%d %s %f %f %f %f", &estudiante.codigo, estudiante.nombre,
+                  &estudiante.notas[0], &estudiante.notas[1], &estudiante.notas[2], &promedio_archivo) == 6) {
         printf("%10d%10s", estudiante.codigo, estudiante.nombre);
         for (int j = 0; j < 3; j++) {
             printf("%10.2f", estudiante.notas[j]);
@@ -139,6 +144,77 @@ void buscarEstudiante() {
     printf("No se encontro el estudiante con el codigo %d\n", codigo_buscado);
     fclose(datos);
 }
+void editarEstudiante() {
+    FILE *datos = fopen(DATA, "r");
+    if (datos == NULL) {
+        printf("No se pudo abrir el archivo\n");
+        return;
+    }
+
+    struct Estudiante estudiantes_temp[MAX];
+    float promedios[MAX];
+    int total = 0;
+
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), datos); // Saltar cabecera
+
+    while (fscanf(datos, "%d %s %f %f %f %f",
+                  &estudiantes_temp[total].codigo,
+                  estudiantes_temp[total].nombre,
+                  &estudiantes_temp[total].notas[0],
+                  &estudiantes_temp[total].notas[1],
+                  &estudiantes_temp[total].notas[2],
+                  &promedios[total]) == 6) {
+        total++;
+    }
+    fclose(datos);
+
+    int codigo_buscado = ingresoentero("Ingrese el codigo del estudiante a editar: ", 0, 9999);
+    int index = -1;
+
+    for (int i = 0; i < total; i++) {
+        if (estudiantes_temp[i].codigo == codigo_buscado) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf("No se encontró el estudiante con el código %d.\n", codigo_buscado);
+        return;
+    }
+
+    printf("Editar datos del estudiante (deje igual si no desea cambiar):\n");
+    printf("Nombre actual: %s\n", estudiantes_temp[index].nombre);
+    printf("Ingrese el nuevo nombre: ");
+    scanf("%s", estudiantes_temp[index].nombre);
+
+    for (int j = 0; j < 3; j++) {
+        printf("Nota %d actual: %.2f\n", j + 1, estudiantes_temp[index].notas[j]);
+        estudiantes_temp[index].notas[j] = ingresoentero("Ingrese la nueva nota: ", 0, 10);
+    }
+    promedios[index] = promedio(estudiantes_temp[index].notas);
+
+    datos = fopen(DATA, "w");
+    if (datos == NULL) {
+        printf("No se pudo abrir el archivo\n");
+        return;
+    }
+    fprintf(datos, "%10s%10s%10s%10s%10s%10s\n", "Codigo", "Nombre", "Nota1", "Nota2", "Nota3", "Promedio");
+
+    for (int i = 0; i < total; i++) {
+        fprintf(datos, "%10d%10s%10.2f%10.2f%10.2f%10.2f\n",
+            estudiantes_temp[i].codigo,
+            estudiantes_temp[i].nombre,
+            estudiantes_temp[i].notas[0],
+            estudiantes_temp[i].notas[1],
+            estudiantes_temp[i].notas[2],
+            promedios[i]);
+    }
+
+    fclose(datos);
+    printf("Estudiante con código %d editado exitosamente.\n", codigo_buscado);
+}
 
 void borrarEstudiante() {
     FILE *datos = fopen(DATA, "r"); // Abrir archivo en modo lectura texto
@@ -148,11 +224,15 @@ void borrarEstudiante() {
     }
 
     struct Estudiante estudiantes_temp[MAX];
+    float promedios[MAX];
     int total = 0;
 
-    while (fscanf(datos, "%d %s %f %f %f", &estudiantes_temp[total].codigo, estudiantes_temp[total].nombre,
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), datos);
+
+    while (fscanf(datos, "%d %s %f %f %f %f", &estudiantes_temp[total].codigo, estudiantes_temp[total].nombre,
                   &estudiantes_temp[total].notas[0], &estudiantes_temp[total].notas[1],
-                  &estudiantes_temp[total].notas[2]) == 5) {
+                  &estudiantes_temp[total].notas[2], &promedios[total]) == 6) {
         total++;
     }
     fclose(datos);
@@ -177,11 +257,17 @@ void borrarEstudiante() {
         printf("No se pudo abrir el archivo\n");
         return;
     }
+    fprintf(datos, "%10s%10s%10s%10s%10s%10s\n", "Codigo", "Nombre", "Nota1", "Nota2", "Nota3", "Promedio");
 
     for (int i = 0; i < total; i++) {
         if (i != index) {
-            fprintf(datos, "%d %s %.2f %.2f %.2f\n", estudiantes_temp[i].codigo, estudiantes_temp[i].nombre,
-                    estudiantes_temp[i].notas[0], estudiantes_temp[i].notas[1], estudiantes_temp[i].notas[2]);
+            fprintf(datos, "%10d%10s%10.2f%10.2f%10.2f%10.2f\n",
+                estudiantes_temp[i].codigo,
+                estudiantes_temp[i].nombre,
+                estudiantes_temp[i].notas[0],
+                estudiantes_temp[i].notas[1],
+                estudiantes_temp[i].notas[2],
+                promedios[i]);
         }
     }
 
@@ -196,9 +282,10 @@ void menu() {
         printf("1. Ingresar datos de estudiantes\n");
         printf("2. Buscar estudiante por su ID\n");
         printf("3. Borrar estudiante por su ID\n");
-        printf("4. Imprimir datos de estudiantes\n");
-        printf("5. Salir\n");
-        opcion = ingresoentero("Seleccione una opcion: ", 1, 5);
+        printf("4. Editar estudiante por su ID\n");
+        printf("5. Imprimir datos de estudiantes\n");
+        printf("6. Salir\n");
+        opcion = ingresoentero("Seleccione una opcion: ", 1, 6);
         switch (opcion) {
             case 1:
                 ingresarDatos();
@@ -210,15 +297,18 @@ void menu() {
                 borrarEstudiante();
                 break;
             case 4:
-                imprimirDatos();
+                editarEstudiante();
                 break;
             case 5:
+                imprimirDatos();
+                break;
+            case 6:
                 printf("Saliendo del programa...\n");
                 break;
             default:
                 printf("Opción no válida.\n");
         }
-    } while (opcion != 5);
+    } while (opcion != 6);
 }
 
 int main(int argc, char const *argv[]) {
