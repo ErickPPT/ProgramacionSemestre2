@@ -60,7 +60,7 @@ int codigounico(int codigo) {
 void ingresarDatos() {
     FILE *datos = fopen(DATA, "a"); // Abrir archivo en modo agregar texto
     if (datos == NULL) {
-        perror("No se pudo abrir el archivo");
+        printf("No se pudo abrir el archivo");
         return;
     }
     fprintf(datos, "%10s%10s%10s%10s%10s%10s\n", "Codigo", "Nombre", "Nota1", "Nota2", "Nota3", "Promedio");
@@ -87,7 +87,7 @@ void ingresarDatos() {
 void imprimirDatos() {
     FILE *datos = fopen(DATA, "r"); // Abrir archivo en modo lectura texto
     if (datos == NULL) {
-        perror("No se pudo abrir el archivo");
+        printf("No se pudo abrir el archivo");
         return;
     }
 
