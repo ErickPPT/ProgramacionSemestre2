@@ -1,0 +1,184 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ZONES 5
+#define DAYS 30
+
+// Pollution limits for each pollutant
+#define LIMIT_PM25 25.0
+#define LIMIT_CO2 400.0
+#define LIMIT_SO2 20.0
+#define LIMIT_NO2 40.0
+
+// Structure to store pollution data for multiple pollutants
+typedef struct {
+    char zoneName[50];
+    float currentPollution[4]; // 0: PM2.5, 1: CO2, 2: SO2, 3: NO2
+    float historicalData[4][DAYS]; // Historical data for each pollutant
+} Zone;
+
+// Function prototypes
+void monitorPollution(Zone zones[]);
+void predictPollution(Zone zones[]);
+void generateAlerts(Zone zones[]);
+void calculateHistoricalAverages(Zone zones[]);
+void generateRecommendations(Zone zones[]);
+void exportData(Zone zones[]);
+
+int main() {
+    Zone zones[ZONES] = {
+        {"Zone 1", {0}, {{0}}},
+        {"Zone 2", {0}, {{0}}},
+        {"Zone 3", {0}, {{0}}},
+        {"Zone 4", {0}, {{0}}},
+        {"Zone 5", {0}, {{0}}}
+    };
+
+    int choice;
+    do {
+        printf("\nSistema Integral de Gestión y Predicción de Contaminación del Aire\n");
+        printf("1. Monitorear contaminación actual\n");
+        printf("2. Predecir niveles futuros\n");
+        printf("3. Emitir alertas preventivas\n");
+        printf("4. Calcular promedios históricos\n");
+        printf("5. Generar recomendaciones\n");
+        printf("6. Exportar datos\n");
+        printf("7. Salir\n");
+        printf("Seleccione una opción: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                monitorPollution(zones);
+                break;
+            case 2:
+                predictPollution(zones);
+                break;
+            case 3:
+                generateAlerts(zones);
+                break;
+            case 4:
+                calculateHistoricalAverages(zones);
+                break;
+            case 5:
+                generateRecommendations(zones);
+                break;
+            case 6:
+                exportData(zones);
+                break;
+            case 7:
+                printf("Saliendo del sistema...\n");
+                break;
+            default:
+                printf("Opción no válida. Intente de nuevo.\n");
+        }
+    } while (choice != 7);
+
+    return 0;
+}
+
+void monitorPollution(Zone zones[]) {
+    printf("\n--- Monitoreo de contaminación actual ---\n");
+    for (int i = 0; i < ZONES; i++) {
+        printf("Ingrese los niveles de contaminación actual para %s:\n", zones[i].zoneName);
+        printf("PM2.5: ");
+        scanf("%f", &zones[i].currentPollution[0]);
+        printf("CO2: ");
+        scanf("%f", &zones[i].currentPollution[1]);
+        printf("SO2: ");
+        scanf("%f", &zones[i].currentPollution[2]);
+        printf("NO2: ");
+        scanf("%f", &zones[i].currentPollution[3]);
+    }
+}
+
+void predictPollution(Zone zones[]) {
+    printf("\n--- Predicción de niveles futuros ---\n");
+    for (int i = 0; i < ZONES; i++) {
+        printf("Predicción para %s:\n", zones[i].zoneName);
+        for (int p = 0; p < 4; p++) {
+            float weightedSum = 0.0, weight = 0.0;
+            for (int j = 0; j < DAYS; j++) {
+                weightedSum += zones[i].historicalData[p][j] * (DAYS - j);
+                weight += (DAYS - j);
+            }
+            float prediction = weightedSum / weight;
+            const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
+            printf("%s: %.2f\n", pollutants[p], prediction);
+        }
+    }
+}
+
+void generateAlerts(Zone zones[]) {
+    printf("\n--- Alertas preventivas ---\n");
+    for (int i = 0; i < ZONES; i++) {
+        const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
+        float limits[] = {LIMIT_PM25, LIMIT_CO2, LIMIT_SO2, LIMIT_NO2};
+        for (int p = 0; p < 4; p++) {
+            if (zones[i].currentPollution[p] > limits[p]) {
+                printf("ALERTA: %s ha excedido el límite de %s (%.2f > %.2f)\n",
+                       zones[i].zoneName, pollutants[p], zones[i].currentPollution[p], limits[p]);
+            }
+        }
+    }
+}
+
+void calculateHistoricalAverages(Zone zones[]) {
+    printf("\n--- Cálculo de promedios históricos ---\n");
+    for (int i = 0; i < ZONES; i++) {
+        printf("Promedios históricos para %s:\n", zones[i].zoneName);
+        for (int p = 0; p < 4; p++) {
+            float sum = 0.0;
+            for (int j = 0; j < DAYS; j++) {
+                sum += zones[i].historicalData[p][j];
+            }
+            float average = sum / DAYS;
+            const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
+            printf("%s: %.2f\n", pollutants[p], average);
+        }
+    }
+}
+
+void generateRecommendations(Zone zones[]) {
+    printf("\n--- Recomendaciones para mitigar la contaminación ---\n");
+    for (int i = 0; i < ZONES; i++) {
+        const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
+        float limits[] = {LIMIT_PM25, LIMIT_CO2, LIMIT_SO2, LIMIT_NO2};
+        for (int p = 0; p < 4; p++) {
+            if (zones[i].currentPollution[p] > limits[p]) {
+                printf("Recomendaciones para %s debido a %s:\n", zones[i].zoneName, pollutants[p]);
+                printf("- Reducir el tráfico vehicular\n");
+                printf("- Cerrar temporalmente industrias\n");
+                printf("- Suspender actividades al aire libre\n");
+            }
+        }
+    }
+}
+
+void exportData(Zone zones[]) {
+    printf("\n--- Exportación de datos ---\n");
+    FILE *file = fopen("reporte_contaminacion.txt", "w");
+    if (file == NULL) {
+        printf("Error al crear el archivo de reporte.\n");
+        return;
+    }
+
+    fprintf(file, "Reporte de Contaminación del Aire\n");
+    for (int i = 0; i < ZONES; i++) {
+        fprintf(file, "Zona: %s\n", zones[i].zoneName);
+        const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
+        for (int p = 0; p < 4; p++) {
+            fprintf(file, "%s actual: %.2f\n", pollutants[p], zones[i].currentPollution[p]);
+            fprintf(file, "Datos históricos de %s: ", pollutants[p]);
+            for (int j = 0; j < DAYS; j++) {
+                fprintf(file, "%.2f ", zones[i].historicalData[p][j]);
+            }
+            fprintf(file, "\n");
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
+    printf("Datos exportados exitosamente a 'reporte_contaminacion.txt'.\n");
+}
