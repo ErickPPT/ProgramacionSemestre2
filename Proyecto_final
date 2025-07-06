@@ -1,126 +1,381 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#define DATA "Datos30dias.txt"
 
-#define ZONES 5
-#define DAYS 30
+#define LIMIT_PM25 15.0
+#define LIMIT_CO2 1000.0
+#define LIMIT_SO2 40.0
+#define LIMIT_NO2 25.0
 
-// Pollution limits for each pollutant
-#define LIMIT_PM25 25.0
-#define LIMIT_CO2 400.0
-#define LIMIT_SO2 20.0
-#define LIMIT_NO2 40.0
+struct Contaminacion{
+    float co2;
+    float so2;
+    float no2;
+    float pm25;
+}contaminacion;
 
-// Structure to store pollution data for multiple pollutants
-typedef struct {
-    char zoneName[50];
-    float currentPollution[4]; // 0: PM2.5, 1: CO2, 2: SO2, 3: NO2
-    float historicalData[4][DAYS]; // Historical data for each pollutant
-} Zone;
+// Estructura para Zona con ID y nombre
+struct Zona {
+    int id;
+    char nombre[100];
+}zona;
 
-// Function prototypes
-void monitorPollution(Zone zones[]);
-void predictPollution(Zone zones[]);
-void generateAlerts(Zone zones[]);
-void calculateHistoricalAverages(Zone zones[]);
-void generateRecommendations(Zone zones[]);
-void exportData(Zone zones[]);
+struct ClimaZona {
+    int id;
+    float temperatura;
+    float viento;
+    float humedad;
+    int registrado;
+};
+struct ClimaZona climas[100];
+int total_climas = 0;
+
+void IngresarZona();
+int LeerNumeroEnteroEntre(char *mensaje,int min,int max);
+void GuardarPalabra(char *mensaje, char destino[], int longitud);
+float LeerNumeroFlotanteEntre(char *mensaje,int min,int max);
+void obtenerClimaZona(int id, float* temperatura, float* viento, float* humedad);
+int ImprimirZonas();
+void prediccion();
+void Ordenar();
+void PromediosHistoricos();
+void ExportacionDatos();
+void GeneracionRecomendaciones(float co2, float so2, float no2, float pm25);
+void recomendacionesPorZona();
 
 int main() {
-    Zone zones[ZONES] = {
-        {"Zone 1", {0}, {{0}}},
-        {"Zone 2", {0}, {{0}}},
-        {"Zone 3", {0}, {{0}}},
-        {"Zone 4", {0}, {{0}}},
-        {"Zone 5", {0}, {{0}}}
-    };
-
-    int choice;
+    int continuar = 1;
+    int opcion = 0;
     do {
         printf("\nSistema Integral de Gestión y Predicción de Contaminación del Aire\n");
-        printf("1. Monitorear contaminación actual\n");
-        printf("2. Predecir niveles futuros\n");
-        printf("3. Emitir alertas preventivas\n");
-        printf("4. Calcular promedios históricos\n");
-        printf("5. Generar recomendaciones\n");
-        printf("6. Exportar datos\n");
+        printf("1. Agregar datos de contaminacion\n");
+        printf("2. Prediccion de niveles futuros\n");
+        printf("3. Calculo de promedios historicos\n");
+        printf("4. Generacion de recomendaciones\n");
+        printf("5. Exportacion de datos\n");
+        printf("6. Mostrar zonas registradas\n");
         printf("7. Salir\n");
-        printf("Seleccione una opción: ");
-        scanf("%d", &choice);
-
-        switch (choice) {
+        printf("Seleccione una opcion: ");
+        scanf("%d", &opcion);
+        switch (opcion) {
             case 1:
-                monitorPollution(zones);
+                ingresarZona();
+                ordenar();
                 break;
             case 2:
-                predictPollution(zones);
+                prediccion();
                 break;
             case 3:
-                generateAlerts(zones);
+                printf("Funcion para calculo de promedios historicos\n");
+                promediosHistoricos();
                 break;
             case 4:
-                calculateHistoricalAverages(zones);
+                recomendacionesPorZona();
                 break;
             case 5:
-                generateRecommendations(zones);
+                printf("Funcion para exportacion de datos\n");
+                exportacionDatos();
                 break;
             case 6:
-                exportData(zones);
+                imprimirZonas();
                 break;
             case 7:
-                printf("Saliendo del sistema...\n");
+                continuar = 0;
+                printf("Saliendo.....\n");
                 break;
             default:
-                printf("Opción no válida. Intente de nuevo.\n");
+                printf("Opcion no valida. Intente de nuevo.\n");
+                break;
         }
-    } while (choice != 7);
-
+    } while (continuar);
     return 0;
 }
+int LeerNumeroEnteroEntre(char *mensaje,int min,int max){
+    int valor = 0;
+    printf("%s",mensaje);
+    while(scanf("%d",&valor) != 1 || valor > max || valor < min) {
+        printf("Dato mal ingresado\n");
+        printf("%s",mensaje);
+        while ((getchar()) != '\n');
+    }
+    while ((getchar()) != '\n');
+    return valor;
+}
 
-void monitorPollution(Zone zones[]) {
-    printf("\n--- Monitoreo de contaminación actual ---\n");
-    for (int i = 0; i < ZONES; i++) {
-        printf("Ingrese los niveles de contaminación actual para %s:\n", zones[i].zoneName);
-        printf("PM2.5: ");
-        scanf("%f", &zones[i].currentPollution[0]);
-        printf("CO2: ");
-        scanf("%f", &zones[i].currentPollution[1]);
-        printf("SO2: ");
-        scanf("%f", &zones[i].currentPollution[2]);
-        printf("NO2: ");
-        scanf("%f", &zones[i].currentPollution[3]);
+float LeerNumeroFlotanteEntre(char *mensaje,int min,int max){
+    float valor = 0;
+    printf("%s",mensaje);
+    while(scanf("%f",&valor) != 1 || valor > max || valor < min) {
+        printf("Dato mal ingresado\n");
+        printf("%s",mensaje);
+        while ((getchar()) != '\n');
+    }
+    while ((getchar()) != '\n');
+    return valor;
+}
+
+void GuardarPalabra(char *mensaje, char destino[], int longitud) {
+    int esValido = 0;
+    while (esValido == 0){
+        printf("%s", mensaje);
+        if (fgets(destino, longitud, stdin) != NULL) {
+            size_t len = strlen(destino);
+            if (len > 0 && destino[len - 1] == '\n') {
+                destino[len - 1] = '\0';
+            }
+            esValido = 1;
+            for (size_t i = 0; i < strlen(destino); i++) {
+                if (isdigit(destino[i])) {
+                    printf("Error: No se permiten numeros. Intente de nuevo.\n");
+                    esValido = 0;
+                    break;
+                }
+            }
+        } else {
+            printf("Error al leer la entrada.\n");
+        }
+    }
+    for (int i = 1; destino[i] != '\0'; i++) {
+        destino[i] = tolower(destino[i]);
     }
 }
 
-void predictPollution(Zone zones[]) {
-    printf("\n--- Predicción de niveles futuros ---\n");
-    for (int i = 0; i < ZONES; i++) {
-        printf("Predicción para %s:\n", zones[i].zoneName);
-        for (int p = 0; p < 4; p++) {
-            float weightedSum = 0.0, weight = 0.0;
-            for (int j = 0; j < DAYS; j++) {
-                weightedSum += zones[i].historicalData[p][j] * (DAYS - j);
-                weight += (DAYS - j);
-            }
-            float prediction = weightedSum / weight;
-            const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
-            printf("%s: %.2f\n", pollutants[p], prediction);
+void IngresarZona() {
+    FILE *datos = fopen(DATA, "r+"); // Abrir para leer y escribir
+    if (datos == NULL) {
+        datos = fopen(DATA, "a+"); // Si no existe, lo crea
+        if (datos == NULL) {
+            printf("No se pudo abrir el archivo\n");
+            return;
         }
+    }
+
+    printf("\nIngreso de Zona\n");
+    int idIngresado = LeerNumeroEnteroEntre("Ingrese el ID de la zona: ", 1, 9999);
+    int idEncontrado = 0;
+    char nombreTemporal[50], fechaTemporal[20];
+    int idTemporal;
+
+    rewind(datos);
+    while (fscanf(datos, "%d,%49[^,],%19[^,]", &idTemporal, nombreTemporal, fechaTemporal) == 3) {
+        int c;
+        while ((c = fgetc(datos)) != '\n' && c != EOF); // Saltar al final de la línea
+        if (idTemporal == idIngresado) {
+            strncpy(zona.nombre, nombreTemporal, 50);
+            zona.nombre[49] = '\0';
+            idEncontrado = 1;
+            break;
+        }
+    }
+
+    zona.id = idIngresado;
+    if (!idEncontrado) {
+        GuardarPalabra("Ingrese el nombre de la zona (max 50 caracteres): ", zona.nombre, 50);
+    } else {
+        printf("Nombre de zona detectado automaticamente: %s\n", zona.nombre);
+    }
+
+    // Obtener la fecha actual
+    char fecha[11];
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(fecha, sizeof(fecha), "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+
+    // Ir al final para agregar la nueva zona
+    fseek(datos, 0, SEEK_END);
+    printf("Ingrese los datos de contaminacion para la zona %s (ID: %d)\n", zona.nombre, zona.id);
+    contaminacion.co2 = LeerNumeroFlotanteEntre("Ingrese la cantidad de CO2: ", 0, 10000);
+    contaminacion.so2 = LeerNumeroFlotanteEntre("Ingrese la cantidad de SO2: ", 0, 10000);
+    contaminacion.no2 = LeerNumeroFlotanteEntre("Ingrese la cantidad de NO2: ", 0, 10000);
+    contaminacion.pm25 = LeerNumeroFlotanteEntre("Ingrese la cantidad de PM2.5: ", 0, 10000);
+
+    fprintf(datos, "%d,%s,%s,%.2f,%.2f,%.2f,%.2f\n",
+            zona.id, zona.nombre, fecha,
+            contaminacion.co2, contaminacion.so2, contaminacion.no2, contaminacion.pm25);
+
+    printf("Zona ingresada correctamente. Fecha: %s\n", fecha);
+    fclose(datos);
+
+    Preventivas(contaminacion.co2, contaminacion.so2, contaminacion.no2, contaminacion.pm25);
+}
+
+void obtenerClimaZona(int id, float* temperatura, float* viento, float* humedad) {
+    for (int i = 0; i < total_climas; i++) {
+        if (climas[i].id == id) {
+            char opcion;
+            printf("\n¿Desea usar los datos climáticos anteriores para esta zona? (S/N): ");
+            scanf(" %c", &opcion);
+            if (opcion == 'S' || opcion == 's') {
+                *temperatura = climas[i].temperatura;
+                *viento = climas[i].viento;
+                *humedad = climas[i].humedad;
+                return;
+            } else {
+                break;
+            }
+        }
+    }
+
+    printf("Ingrese la temperatura actual (°C): ");
+    scanf("%f", temperatura);
+    printf("Ingrese la velocidad del viento actual (km/h): ");
+    scanf("%f", viento);
+    printf("Ingrese el nivel de humedad actual (%%): ");
+    scanf("%f", humedad);
+
+    int actualizado = 0;
+    for (int i = 0; i < total_climas; i++) {
+        if (climas[i].id == id) {
+            climas[i].temperatura = *temperatura;
+            climas[i].viento = *viento;
+            climas[i].humedad = *humedad;
+            climas[i].registrado = 1;
+            actualizado = 1;
+            break;
+        }
+    }
+    if (!actualizado) {
+        climas[total_climas].id = id;
+        climas[total_climas].temperatura = *temperatura;
+        climas[total_climas].viento = *viento;
+        climas[total_climas].humedad = *humedad;
+        climas[total_climas].registrado = 1;
+        total_climas++;
     }
 }
 
-void generateAlerts(Zone zones[]) {
-    printf("\n--- Alertas preventivas ---\n");
-    for (int i = 0; i < ZONES; i++) {
-        const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
-        float limits[] = {LIMIT_PM25, LIMIT_CO2, LIMIT_SO2, LIMIT_NO2};
-        for (int p = 0; p < 4; p++) {
-            if (zones[i].currentPollution[p] > limits[p]) {
-                printf("ALERTA: %s ha excedido el límite de %s (%.2f > %.2f)\n",
-                       zones[i].zoneName, pollutants[p], zones[i].currentPollution[p], limits[p]);
-            }
+void prediccion() {
+    printf("\n--- Predicción de niveles futuros (promedio 7 días + clima actual) ---\n");
+    imprimirZonas();
+    int id_zona = leerNumeroEnteroEntre("Ingrese el ID de la zona para predecir: ", 1, 10000);
+
+    FILE *archivo = fopen(DATA, "r");
+    if (!archivo) {
+        printf("No se pudo abrir el archivo de datos.\n");
+        return;
+    }
+
+    float co2[7], so2[7], no2[7], pm25[7];
+    char fechas[7][20];
+    int count = 0;
+    char nombre[50], fecha[20];
+    int id;
+    float vco2, vso2, vno2, vpm25;
+
+    while (fscanf(archivo, "%d,%49[^,],%19[^,],%f,%f,%f,%f",
+                  &id, nombre, fecha, &vco2, &vso2, &vno2, &vpm25) == 7) {
+        if (id == id_zona && count < 7) {
+            co2[count] = vco2;
+            so2[count] = vso2;
+            no2[count] = vno2;
+            pm25[count] = vpm25;
+            strncpy(fechas[count], fecha, 20);
+            fechas[count][19] = '\0';
+            count++;
         }
+    }
+    fclose(archivo);
+
+    if (count == 0) {
+        printf("No hay datos para la zona seleccionada.\n");
+        return;
+    }
+
+    float suma_co2 = 0, suma_so2 = 0, suma_no2 = 0, suma_pm25 = 0;
+    for (int i = 0; i < count; i++) {
+        suma_co2 += co2[i];
+        suma_so2 += so2[i];
+        suma_no2 += no2[i];
+        suma_pm25 += pm25[i];
+    }
+
+    printf("\nDatos usados para la predicción (últimos %d días):\n", count);
+    for (int i = 0; i < count; i++) {
+        printf("%s: CO2=%.2f, SO2=%.2f, NO2=%.2f, PM25=%.2f\n",
+               fechas[i], co2[i], so2[i], no2[i], pm25[i]);
+    }
+
+    // Calcular fecha de mañana
+    time_t t_actual = time(NULL);
+    struct tm tm_maniana = *localtime(&t_actual);
+    tm_maniana.tm_mday += 1;
+    mktime(&tm_maniana); // Normalizar
+    char fecha_maniana[20];
+    strftime(fecha_maniana, sizeof(fecha_maniana), "%Y-%m-%d", &tm_maniana);
+
+    // Promedios
+    float promedio_co2 = suma_co2 / count;
+    float promedio_so2 = suma_so2 / count;
+    float promedio_no2 = suma_no2 / count;
+    float promedio_pm25 = suma_pm25 / count;
+
+    // Clima actual
+    float temperatura, viento, humedad;
+    obtenerClimaZona(id_zona, &temperatura, &viento, &humedad);
+
+    // Predicción con fórmula
+    float pred_co2 = 0.7 * promedio_co2 + 0.1 * temperatura - 0.1 * viento + 0.1 * humedad;
+    float pred_so2 = 0.5 * promedio_so2 + 0.2 * temperatura - 0.2 * viento + 0.2 * humedad;
+    float pred_no2 = 0.6 * promedio_no2 + 0.2 * temperatura - 0.1 * viento + 0.1 * humedad;
+    float pred_pm25 = 0.6 * promedio_pm25 + 0.2 * temperatura - 0.1 * viento + 0.1 * humedad;
+
+    // Resultados
+    printf("\nPredicción para el día %s en la zona ID %d:\n", fecha_maniana, id_zona);
+    printf("CO2: %.2f ppm\n", pred_co2);
+    printf("SO2: %.2f ug/m3\n", pred_so2);
+    printf("NO2: %.2f ug/m3\n", pred_no2);
+    printf("PM2.5: %.2f ug/m3\n", pred_pm25);
+
+    alertasDesdePrediccion(pred_co2, pred_so2, pred_no2, pred_pm25);
+}
+
+void recomendacionesPorZona() {
+    printf("\n--- Generación de recomendaciones por zona (niveles actuales) ---\n");
+    imprimirZonas();
+
+    int id_zona = leerNumeroEnteroEntre("Ingrese el ID de la zona para recomendaciones: ", 1, 10000);
+
+    FILE *archivo = fopen(DATA, "r");
+    if (archivo == NULL) {
+        printf("No se pudo abrir el archivo de datos.\n");
+        return;
+    }
+
+    float co2 = 0, so2 = 0, no2 = 0, pm25 = 0;
+    int id;
+    char nombre[50], fecha[20];
+    float vco2, vso2, vno2, vpm25;
+    int encontrado = 0;
+    char fecha_ultimo[20] = "";
+
+    // Buscar el último registro de la zona seleccionada
+    while (fscanf(archivo, "%d,%49[^,],%19[^,],%f,%f,%f,%f",
+                  &id, nombre, fecha, &vco2, &vso2, &vno2, &vpm25) == 7) {
+        if (id == id_zona) {
+            co2 = vco2;
+            so2 = vso2;
+            no2 = vno2;
+            pm25 = vpm25;
+            strncpy(fecha_ultimo, fecha, sizeof(fecha_ultimo));
+            fecha_ultimo[sizeof(fecha_ultimo) - 1] = '\0';
+            encontrado = 1;
+        }
+    }
+    fclose(archivo);
+
+    if (encontrado) {
+        printf("\nÚltimos valores registrados para la zona %d (fecha %s):\n", id_zona, fecha_ultimo);
+        printf("CO2: %.2f ppm\n", co2);
+        printf("SO2: %.2f ug/m3\n", so2);
+        printf("NO2: %.2f ug/m3\n", no2);
+        printf("PM2.5: %.2f ug/m3\n", pm25);
+
+        printf("\n--- Recomendaciones de mitigación ---\n");
+        generacionRecomendaciones(co2, so2, no2, pm25);
+    } else {
+        printf("No se encontraron registros para la zona seleccionada.\n");
     }
 }
 
@@ -140,19 +395,37 @@ void calculateHistoricalAverages(Zone zones[]) {
     }
 }
 
-void generateRecommendations(Zone zones[]) {
-    printf("\n--- Recomendaciones para mitigar la contaminación ---\n");
-    for (int i = 0; i < ZONES; i++) {
-        const char *pollutants[] = {"PM2.5", "CO2", "SO2", "NO2"};
-        float limits[] = {LIMIT_PM25, LIMIT_CO2, LIMIT_SO2, LIMIT_NO2};
-        for (int p = 0; p < 4; p++) {
-            if (zones[i].currentPollution[p] > limits[p]) {
-                printf("Recomendaciones para %s debido a %s:\n", zones[i].zoneName, pollutants[p]);
-                printf("- Reducir el tráfico vehicular\n");
-                printf("- Cerrar temporalmente industrias\n");
-                printf("- Suspender actividades al aire libre\n");
-            }
-        }
+void generacionRecomendaciones(float co2, float so2, float no2, float pm25) {
+    printf("\n--- Recomendaciones de mitigación ---\n");
+    int alerta = 0;
+
+    if (pm25 > LIMIT_PM25) {
+        printf("PM2.5 alto (%.2f ug/m3):\n", pm25);
+        printf("- Limitar actividades al aire libre y uso de vehículos particulares.\n");
+        printf("- Promover el uso de mascarillas en exteriores.\n");
+        alerta = 1;
+    }
+    if (co2 > LIMIT_CO2) {
+        printf("CO2 alto (%.2f ppm):\n", co2);
+        printf("- Fomentar el uso de transporte público y bicicletas.\n");
+        printf("- Mejorar la eficiencia energética en edificios e industrias.\n");
+        alerta = 1;
+    }
+    if (so2 > LIMIT_SO2) {
+        printf("SO2 alto (%.2f ug/m3):\n", so2);
+        printf("- Controlar emisiones industriales y uso de combustibles fósiles.\n");
+        printf("- Promover el uso de energías limpias.\n");
+        alerta = 1;
+    }
+    if (no2 > LIMIT_NO2) {
+        printf("NO2 alto (%.2f ug/m3):\n", no2);
+        printf("- Restringir el tráfico vehicular en horas pico.\n");
+        printf("- Revisar y mantener vehículos para reducir emisiones.\n");
+        alerta = 1;
+    }
+
+    if (!alerta) {
+        printf("Todos los niveles están dentro de los límites recomendados.\n");
     }
 }
 
